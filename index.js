@@ -1,7 +1,9 @@
 const dbus = require('dbus');
+const util = require('util')
 
 const sessionBus = dbus.getBus('session');
 
-const interface = sessionBus.getInterface('org.razer', '/org/razer', 'razer.devices', function(err, data) {
-	console.log(err || data);
-});
+util.promisify(sessionBus.getInterface)('org.razer', '/org/razer', 'razer.devices')
+	.then(interface => {
+		console.log(interface);
+	});

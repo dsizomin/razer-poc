@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/dsizomin/razer-poc/issues"
   },
-  "homepage": "https://github.com/dsizomin/razer-poc#readme"
+  "homepage": "https://github.com/dsizomin/razer-poc#readme",
+  "dependencies": {
+    "dbus": "^1.0.7"
+  }
 }
