@@ -42,8 +42,8 @@ new Promise((res, rej) => {
 			interface.getVidPid((err, data) => err ? rej(err) : res(data))
 		});
 
-		return Promise.all([typePromise, vidPidPromise]).then(([type, vidPid]) => {
-			result[serial] = { type, vidPid };
+		return Promise.all([typePromise, vidPidPromise]).then(([type, [vid, pid]]) => {
+			result[serial] = { type, vid, pid };
 		});
 
 	})).then(() => result);
