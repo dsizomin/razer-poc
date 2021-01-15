@@ -18,7 +18,7 @@ new Promise((res, rej) => {
 }).then(serials => {
 	console.log('Connecting to devices interfaces...');
 	const result = {};
-	return Promise.allSettled(serials.map(serial => {
+	return Promise.all(serials.map(serial => {
 		return new Promise((res, rej) => {
 			sessionBus.getInterface(
 				'org.razer',
@@ -31,7 +31,7 @@ new Promise((res, rej) => {
 }).then(deviceInterfaceMap => {
 	console.log('Getting devices data...');
 	const result = {};
-	return Promise.allSettled(Object.keys(deviceInterfaceMap).map(serial => {
+	return Promise.all(Object.keys(deviceInterfaceMap).map(serial => {
 		const interface = deviceInterfaceMap[serial];
 
 		const typePromise = new Promise((res, rej) => {
@@ -42,7 +42,7 @@ new Promise((res, rej) => {
 			interface.getVidPid((err, data) => err ? rej(err) : res(data))
 		});
 
-		return Promise.allSettled([typePromise, vidPidPromise]).then(([type, vidPid]) => {
+		return Promise.all([typePromise, vidPidPromise]).then(([type, vidPid]) => {
 			result[serial] = { type, vidPid };
 		});
 
