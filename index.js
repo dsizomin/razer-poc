@@ -1,9 +1,50 @@
 const dbus = require('dbus');
-const util = require('util')
 
 const sessionBus = dbus.getBus('session');
 
-util.promisify(sessionBus.getInterface)('org.razer', '/org/razer', 'razer.devices')
-	.then(interface => {
-		console.log(interface);
-	});
+new Promise((res, rej) => {
+	console.log('Connecting to interface...');
+	sessionBus.getInterface(
+		'org.razer',
+		'/org/razer',
+		'razer.devices',
+		(err, data) => err ? rej(err) : res(data)
+	);
+}).then(interface => {
+	console.log('Getting device list...');
+	return new Promise((res, rej) => {
+		interface.getDevices((err, data) => err ? rej(err) : res(data))
+	})
+}).then(serials => {
+	console.log('Connecting to devices interfaces...');
+	const result = {};
+	return Promise.allSettled(serials.map(serial => {
+		return new Promise((res, rej) => {
+			sessionBus.getInterface(
+				'org.razer',
+				`/org/razer/device/${serial}`,
+				'razer.device.misc',
+				(err, data) => err ? rej(err) : res(data)
+			);
+		}).then(interface => result[serial] = interface);
+	})).then(() => result);
+}).then(deviceInterfaceMap => {
+	console.log('Getting devices data...');
+	const result = {};
+	return Promise.allSettled(Object.keys(deviceInterfaceMap).map(serial => {
+		const interface = deviceInterfaceMap[serial];
+
+		const typePromise = new Promise((res, rej) => {
+			interface.getDeviceType((err, data) => err ? rej(err) : res(data))
+		});
+
+		const vidPidPromise = new Promise((res, rej) => {
+			interface.getVidPid((err, data) => err ? rej(err) : res(data))
+		});
+
+		return Promise.allSettled([typePromise, vidPidPromise]).then(([type, vidPid]) => {
+			result[serial] = { type, vidPid };
+		});
+
+	})).then(() => result);
+}).then(devices => console.log(devices));
